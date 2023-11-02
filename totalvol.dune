@@ -1,0 +1,27 @@
+WITH sales_data as (
+    SELECT 
+        date(date_trunc('day', block_time)) as day,
+        -- (date_trunc(date('now')) - date_trunc('day', block_time)) as days_7,
+        sum(amount_usd) as total_volume_usd,
+        sum(amount_raw/1e18) as total_volume_ETH,
+        count(*) as total_sales,
+        count(distinct seller) as unique_sellers,
+        count(distinct buyer) as unique_buyers
+    FROM nft.trades
+    WHERE nft_contract_address = 0x60d032319Cd1C05f01f83DF814bcf5aD9380504c
+    GROUP BY date(date_trunc('day', block_time))
+    ORDER BY day DESC
+),
+total as (
+    SELECT 1 as counts,
+        max(day) as day,
+        sum(total_volume_usd) as total_volume_usd,
+        sum(total_volume_ETH) as total_volume_ETH,
+        sum(total_sales) as total_sales,
+        sum(unique_sellers) as unique_sellers,
+        sum(unique_buyers) as unique_buyers
+    FROM sales_data
+    GROUP BY 1
+)
+
+SELECT * FROM total
